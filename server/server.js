@@ -130,6 +130,40 @@ function authenticateToken(req, res, next) {
         }
     );
 }
+// ==========================================
+// 8. GUEST LOGIN ROUTE
+// ==========================================
+
+app.post("/guest", (req, res) => {
+
+    try {
+
+        const token = jwt.sign(
+            {
+                id: "guest",
+                email: "guest@resumeats.demo",
+                guest: true
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "1h"
+            }
+        );
+
+        res.json({
+            message: "Guest access granted",
+            token
+        });
+
+    } catch (error) {
+
+        console.error("Guest Login Error:", error.message);
+
+        res.status(500).json({
+            message: "Guest access failed"
+        });
+    }
+});
 
 
 // ==========================================
@@ -328,20 +362,26 @@ app.post(
             }
 
             // Save resume in MongoDB
-            const resume = new Resume({
-                userId: req.user.id,
-                fileName: req.file.originalname,
-                extractedText
-            });
+            let resumeId = null;
 
-            await resume.save();
+if (!req.user.guest) {
+    const resume = new Resume({
+        userId: req.user.id,
+        fileName: req.file.originalname,
+        extractedText
+    });
 
-            res.json({
-                message: "Resume uploaded successfully",
-                resumeId: resume._id,
-                fileName: req.file.originalname,
-                extractedText
-            });
+    await resume.save();
+
+    resumeId = resume._id;
+}
+
+res.json({
+    message: "Resume uploaded successfully",
+    resumeId,
+    fileName: req.file.originalname,
+    extractedText
+});
 
         } catch (error) {
 

@@ -157,6 +157,24 @@ function App() {
         <button onClick={handleLogin}>
           Login
         </button>
+        <button
+  className="guest-button"
+  onClick={async () => {
+    try {
+      const response = await API.post("/guest");
+
+      localStorage.setItem("token", response.data.token);
+
+      setMessage("Guest access granted!");
+    } catch (error) {
+      setMessage(
+        error.response?.data?.message || "Guest access failed"
+      );
+    }
+  }}
+>
+  Continue as Guest
+</button>
       </section>
 
       {/* UPLOAD CARD */}
